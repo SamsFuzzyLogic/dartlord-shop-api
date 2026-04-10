@@ -113,6 +113,7 @@ app.get('/api/shop/product/:id', async (req, res) => {
     const product = {
       id: p.id,
       title: p.title,
+      sku: v.sku,
       description: p.description?.replace(/<[^>]*>/g, '') || '',
       images: p.images?.map(i => ({ src: i.src, is_default: i.is_default, variant_ids: i.variant_ids })) || [],
       variants: p.variants?.filter(v => v.is_enabled).map(v => ({
@@ -123,6 +124,7 @@ app.get('/api/shop/product/:id', async (req, res) => {
         is_available: v.is_available,
       })) || [],
       options: p.options || [],
+      tags: p.tags || [],
     };
 
     res.json(product);

@@ -72,13 +72,18 @@ app.get('/api/shop/products', async (req, res) => {
         description: p.description?.replace(/<[^>]*>/g, '').slice(0, 200) || '',
         price,
         image,
-        variants: p.variants?.filter(v => v.is_enabled).map(v => ({
-          id: v.id,
-          title: v.title,
-          price: (v.price / 100).toFixed(2),
-          options: v.options || {},
-        })) || [],
-        tags: p.tags || [],
+      variants: p.variants?.filter(v => v.is_enabled).map(v => {
+      // Find images that match this variant
+      const variantImages = p.images?.filter(img => img.variant_ids?.includes(v.id)) || [];
+      const variantImage = variantImages.find(i => i.is_default) || variantImages[0];
+      return {
+        id: v.id,
+        title: v.title,
+        price: (v.price / 100).toFixed(2),
+        options: v.options || {},
+        image: variantImage?.src || null,
+      };
+    }) || [],
       };
     });
 
@@ -190,8 +195,8 @@ app.post('/api/shop/checkout', async (req, res) => {
           qty: i.quantity,
         }))),
       },
-      success_url: `${FRONTEND_URL}/checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${FRONTEND_URL}/checkout=cancelled`,
+      success_url: `${FRONTEND_URL}/?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${FRONTEND_URL}/?checkout=cancelled`,
     });
 
     res.json({ url: session.url, sessionId: session.id });
